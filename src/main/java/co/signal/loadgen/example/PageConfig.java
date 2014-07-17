@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package co.signal.loadgen;
+package co.signal.loadgen.example;
 
 import java.util.Set;
 
@@ -24,20 +24,12 @@ import com.google.common.base.Objects;
 * @since 6/30/14
 */
 class PageConfig {
-  private double weight;
-  private Set<Long> tags;
+  private final double weight;
+  private final Set<Long> tags;
 
   public PageConfig(double weight, Set<Long> tags) {
     this.weight = weight;
     this.tags = tags;
-  }
-
-  @Override
-  public String toString() {
-    return Objects.toStringHelper(this)
-        .add("weight", weight)
-        .add("tags", tags)
-        .toString();
   }
 
   public double getWeight() {
@@ -46,5 +38,13 @@ class PageConfig {
 
   public Set<Long> getTags() {
     return tags;
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+        .add("weight", weight)
+        .add("tags", tags)
+        .toString();
   }
 }

@@ -1,31 +1,37 @@
-# kafkameter - Kafka JMeter Plugin
+# kafkameter - Kafka JMeter Extension
 
-This plugin provides two components:
+This extension provides two components:
 
 * Kafka Producer Sampler: sends keyed messages to Kafka
-* Tagserve Load Generator Config Element: generates JSON TagRequestMetrics messages as synthetic load from tagserve.
+* Load Generator Config Element: generates messages as synthetic load.
 
 The purpose of the Load Generator Config Element is to dynamically create the messages for sending
 to Kafka. You could alternatively use the CSV Data Set or another source for messages.
 
-The included Tagserve Load Generator is intended for use as an example; your message format
-and load distribution will undoubtedly differ from ours.
+As each application has its own input message format and load distribution, the Load Generator
+Config provides a pluggable framework for application-specific message generation. An example
+implementation is included.
+
+A sample JMeter Test Plan demonstrates wiring the Load Generator and Kafka Sampler together for a
+complete test. A [Counter](http://jmeter.apache.org/usermanual/component_reference.html#Counter)
+is used as the `kafka_key` to ensure the load is distributed across all available Kafka partitions.
+This sample JMeter Test Plan can be found in `Tagserve-Kafka.jmx`.
 
 ## Install
 
-Build the plugin:
+Build the extension:
 
     mvn package
 
-Install the plugin into `$JMETER_HOME/ext/lib`:
+Install the extension into `$JMETER_HOME/lib/ext`:
 
-    cp target/kafkameter-x.y.z.jar $JMETER_HOME/ext/lib
+    cp target/kafkameter-x.y.z.jar $JMETER_HOME/lib/ext
 
 ## Usage
 
 ### Kafka Producer Sampler
 
-After installing the plugin, add a Java Request Sampler and select the `KafkaProducerSampler`
+After installing `kafkameter`, add a Java Request Sampler and select the `KafkaProducerSampler`
 class name. The following properties are required.
 
 * **kafka_brokers**: comma-separated list of hosts in the format (hostname:port).
@@ -38,13 +44,71 @@ You may also override the following:
 * **kafka_message_serializer**: the Kafka client `serializer.class` property.
 * **kafka_key_serializer**: the Kafka client `key.serializer.class` property.
 
-### Tagserve Load Generator
+### Load Generator Config
 
-After installing the plugin, the Tagserve Load Generator will be available as a Config Element.
-This component reads a Synthetic Tagserve Load Description from a given file, generates a JSON
-TagRequestMetrics message, and makes it available with the given variable name.
+After installing `kafkameter`, the Load Generator will be available as a Config Element.
 
-#### Synthetic Tagserve Load Description
+This component reads a Synthetic Load Description from a given file, uses a Synthetic Load Generator
+plugin to generate a new message on each iteration, and makes this message available to other
+elements under the given variable name. The Synthetic Load Description format will be specific
+to each Synthetic Load Generator.
+
+#### Simplest Possible Example
+
+A dummy example is useful for demonstrating integration with the Load Generator framework in JMeter.
+
+Create a file called `DummyGenerator.java`:
+
+    import co.signal.loadgen.SyntheticLoadGenerator;
+
+    public class DummyGenerator implements SyntheticLoadGenerator {
+
+      public DummyGenerator(String ignored) {}
+
+      @Override
+      public String nextMessage() {
+        return "Hey! Dum-dum! You give me gum-gum.";
+      }
+    }
+
+Now compile this class:
+
+    javac DummyGenerator.java -classpath target/kafkameter-x.y.z.jar
+
+Package it into a jar:
+
+    jar cvf DummyGenerator.jar *.class
+
+Place the jar into JMeter's `lib/ext` directory:
+
+    mv DummyGenerator.jar $JMETER_HOME/lib/ext/
+
+Now you should see `DummyGenerator` as an option in the Load Generator's "Class Name" drop-down.
+
+#### Realistic Example
+
+This example will use one of [Signal's](signal.co) own domains: tag serving.
+
+Let's say we have a collection of client websites identified by an alphanumeric `siteId`. Each site
+contains a collection of pages identified by a numeric `pageId`. Any given request may match zero
+or more pages. Each page contains a collection of tags identified by a numeric `tagId` which will be
+served whenever the containing page matches. Each request occurs at a particular epoch `timestamp`.
+
+Given this model, we will represent the domain-specific message in JSON as
+
+    {
+      "siteId": <string>,
+      "timestamp": <long>,
+      "pageIds": [<pageId>, ...],
+      "tagIds": [<tagId>, ...]
+    }
+
+We refer to this as a `TagRequestMetrics` message.
+
+The Load Generator will create `TagRequestMetrics` messages according to the distribution
+specified by the example `Synthetic Tagserve Load Description`, described below.
+
+##### Synthetic Tagserve Load Description
 
 The Synthetic Tagserve Load Description has the following format:
 
@@ -64,11 +128,11 @@ The weights are used to determine the next `TagRequestMetrics` message for the `
 The weight for a site represents the percentage of total traffic belonging to the site. However,
 the weight for a page represents the probability that the page will be matched in any given request.
 
-Said another way, because a `TagRequestMetric` represents a single site, the weights for the different
-sites must sum to unity. However, a single request can match multiple pages independently, so these
-weights are independent; i.e., they do not have to sum to unity.
+Said another way, because `TagRequestMetrics` represents a single site, the weights for the
+different sites must sum to unity. However, a single request can match multiple pages independently,
+so these weights are independent; i.e., they do not have to sum to unity.
 
-#### Synthetic Tagserve Load Algorithm
+##### Synthetic Tagserve Load Algorithm
 
 For each iteration, generate a uniformly random variate between `(0, 1]`. The mapping below would
 represent which site's load configuration to use based on the variate.
@@ -79,9 +143,9 @@ represent which site's load configuration to use based on the variate.
 For each page within the load configuration, generate a uniformly random variate between `(0, 1]`.
 Reject any pages with lesser weights. The tags included from each selected page are unioned.
 
-#### Example
+##### Example
 
-For example, given the following synthetic tagserve load configuration
+For example, given the following Synthetic Load Description
 
     {
        "site1": {

@@ -35,10 +35,11 @@
           <boolProp name="CounterConfig.per_user">true</boolProp>
         </CounterConfig>
         <hashTree/>
-        <co.signal.loadgen.TagserveLoadGenerator guiclass="TestBeanGUI" testclass="co.signal.loadgen.TagserveLoadGenerator" testname="Tagserve Load Generator" enabled="true">
-          <stringProp name="filename">config1.json</stringProp>
+        <co.signal.loadgen.LoadGenerator guiclass="TestBeanGUI" testclass="co.signal.loadgen.LoadGenerator" testname="Tagserve Load Generator" enabled="true">
+          <stringProp name="className">co.signal.loadgen.example.TagserveLoadGenerator</stringProp>
+          <stringProp name="fileName">config1.json</stringProp>
           <stringProp name="variableName">message</stringProp>
-        </co.signal.loadgen.TagserveLoadGenerator>
+        </co.signal.loadgen.LoadGenerator>
         <hashTree/>
         <JavaSampler guiclass="JavaTestSamplerGui" testclass="JavaSampler" testname="Kafka Request" enabled="true">
           <elementProp name="arguments" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" enabled="true">
@@ -107,7 +108,7 @@
               <bytes>true</bytes>
             </value>
           </objProp>
-          <stringProp name="filename"></stringProp>
+          <stringProp name="fileName"></stringProp>
         </ResultCollector>
         <hashTree/>
         <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
@@ -139,7 +140,7 @@
               <bytes>true</bytes>
             </value>
           </objProp>
-          <stringProp name="filename"></stringProp>
+          <stringProp name="fileName"></stringProp>
         </ResultCollector>
         <hashTree/>
       </hashTree>

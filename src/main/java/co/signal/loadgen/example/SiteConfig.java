@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package co.signal.loadgen;
+package co.signal.loadgen.example;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -25,12 +25,20 @@ import com.google.common.base.Objects;
 * @since 6/30/14
 */
 class SiteConfig {
-  private double weight;
-  private Map<String, PageConfig> pages;
+  private final double weight;
+  private final Map<String, PageConfig> pages;
 
   public SiteConfig(double weight, Map<String, PageConfig> pages) {
     this.weight = weight;
     this.pages = pages;
+  }
+
+  public double getWeight() {
+    return weight;
+  }
+
+  public Map<String, PageConfig> getPages() {
+    return pages;
   }
 
   @Override
@@ -60,13 +68,5 @@ class SiteConfig {
 
   Object[] significantAttributes() {
     return new Object[] { weight, pages };
-  }
-
-  public double getWeight() {
-    return weight;
-  }
-
-  public Map<String, PageConfig> getPages() {
-    return pages;
   }
 }
