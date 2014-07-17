@@ -15,7 +15,20 @@
  */
 package co.signal.loadgen.example;
 
+import java.util.Map;
+import java.util.Set;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
+
+import org.joda.time.Interval;
+
+import com.onetag.metrics.TagRequestMetrics.TagFires;
+import com.onetag.metrics.impl.TagFiresImpl;
+import com.onetag.metrics.impl.TagRequestMetricsImpl;
+import com.onetag.metrics.json.JSONTagRequestMetricsMarshaller;
+import com.onetag.model.Source;
 
 /**
  * Example message marshaller which converts a message into JSON.
@@ -24,13 +37,25 @@ import com.google.gson.Gson;
  * @since 7/17/14
  */
 public class TagRequestMetricsJsonMarshaller {
-  private final Gson gson;
+  private final JSONTagRequestMetricsMarshaller delegate = new JSONTagRequestMetricsMarshaller();
 
-  public TagRequestMetricsJsonMarshaller(Gson gson) {
-    this.gson = gson;
+  public TagRequestMetricsJsonMarshaller(Gson ignored) {
+    // Nothing to do
   }
 
   public String marshal(TagRequestMetrics metrics) {
-    return gson.toJson(metrics);
+    com.onetag.metrics.TagRequestMetrics impl = new TagRequestMetricsImpl(
+        metrics.getSiteId(), new Interval(metrics.getTimestamp(), metrics.getTimestamp() + 30),
+        Source.WEBSITE, null, false, false, ImmutableSet.copyOf(metrics.getPageIds()),
+        toTagFires(metrics.getTagIds()));
+    return delegate.marshal(impl);
+  }
+
+  public Map<Long, TagFires> toTagFires(Set<Long> tagIds) {
+    ImmutableMap.Builder<Long, TagFires> tagMetrics = ImmutableMap.builder();
+    for (Long tagId : tagIds) {
+      tagMetrics.put(tagId, new TagFiresImpl(1, 0, 0));
+    }
+    return tagMetrics.build();
   }
 }

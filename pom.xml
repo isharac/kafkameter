@@ -94,6 +94,14 @@
             </exclusions>
         </dependency>
 
+        <!-- Signal Dependencies -->
+
+        <dependency>
+            <groupId>com.onetag</groupId>
+            <artifactId>statslib</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
     </dependencies>
 
     <build>
